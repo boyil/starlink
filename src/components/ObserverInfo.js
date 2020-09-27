@@ -37,7 +37,7 @@ const ObserverInfo = (props) => {
                         message: 'Please enter a valid longitude!',
                     }]}
                 >
-                    <InputNumber min={-180} max={180} style={{ width: "60%" }} />
+                    <InputNumber min={-180} max={180} style={{ width: "60%" }} disabled={props.onTracking}/>
                 </Form.Item>
 
                 <Form.Item
@@ -48,7 +48,7 @@ const ObserverInfo = (props) => {
                         message: 'Please enter a valid latitude!',
                     }]}
                 >
-                    <InputNumber min={-90} max={90} style={{ width: "60%" }} />
+                    <InputNumber min={-90} max={90} style={{ width: "60%" }} disabled={props.onTracking}/>
                 </Form.Item>
                 <Form.Item
                     label="Altitude(meters)"
@@ -58,7 +58,7 @@ const ObserverInfo = (props) => {
                         message: 'Please enter a valid altitude!',
                     }]}
                 >
-                    <InputNumber min={-413} max={8850} style={{ width: "60%" }} />
+                    <InputNumber min={-413} max={8850} style={{ width: "60%" }} disabled={props.onTracking}/>
                 </Form.Item>
                 <Form.Item
                     label="Radius"
@@ -68,11 +68,11 @@ const ObserverInfo = (props) => {
                         message: 'Please enter a valid radius!',
                     }]}
                 >
-                    <InputNumber min={0} max={90} style={{ width: "60%" }} />
+                    <InputNumber min={0} max={90} style={{ width: "60%" }} disabled={props.onTracking}/>
                 </Form.Item>
 
                 <Form.Item {...tailLayout}>
-                    <Button type="primary" htmlType="submit" disabled={props.loading}>
+                    <Button type="primary" htmlType="submit" disabled={props.loading || props.onTracking}>
                         Find Nearby Satellites
                     </Button>
                 </Form.Item>

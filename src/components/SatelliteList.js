@@ -7,6 +7,7 @@ const SatelliteList = ({
     satList,
     updateSatelliteList,
     loading,
+    onTracking,
 }) => {
     const onSelectionChange = (checked, targetSatllite) => {
         const nextSatlliteList = satList.map((satllite) => {
@@ -37,7 +38,11 @@ const SatelliteList = ({
                 dataSource={satList}
                 loading={loading}
                 renderItem={ item => (
-                    <List.Item actions={[<Checkbox onChange={(e) => onSelectionChange(e.target.checked, item)} checked={item.selected} />]}>
+                    <List.Item actions={[<Checkbox
+                        onChange={(e) => onSelectionChange(e.target.checked, item)}
+                        checked={item.selected}
+                        disabled={onTracking}
+                    />]}>
                         <List.Item.Meta
                             avatar={<Avatar src={satelliteImage} size="large" alt="satellite"/>}
                             title={<p>{item.satname}</p>}
