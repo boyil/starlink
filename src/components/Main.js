@@ -3,12 +3,14 @@ import {Col, Row} from "antd";
 import ObserverInfo from "./ObserverInfo";
 import { SAT_CATEGORY, N2YO_API_KEY, N2YO_BASE_URL } from "../constants";
 import SatelliteList from "./SatelliteList";
+import WorldMap from "./WorldMap";
 
 export const ABOVE_API_BASE_URL = `${N2YO_BASE_URL}/above`;
 
 const Main = () => {
     const [satList, setSatList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [tracking, setTracking] = useState(false);
 
     const findSatellitesOnClick = (nextObserverInfo) => {
         const { longitude, latitude, altitude, radius } = nextObserverInfo;
@@ -32,11 +34,24 @@ const Main = () => {
     return (
         <Row>
             <Col span={8}>
-                <ObserverInfo findSatellitesOnClick={findSatellitesOnClick} loading={loading} />
-                <SatelliteList satList={satList} updateSatelliteList={setSatList} loading={loading} />
+                <ObserverInfo
+                    findSatellitesOnClick={findSatellitesOnClick}
+                    loading={loading}
+                    onTracking={tracking}
+                />
+                <SatelliteList
+                    satList={satList}
+                    updateSatelliteList={setSatList}
+                    loading={loading}
+                    onTracking={tracking}
+                />
             </Col>
             <Col span={16}>
-                WorldMap
+                <WorldMap
+                    selectedSatellites={satList.filter(sat => sat.selected)}
+                    setTracking={setTracking}
+                    onTracking={tracking}
+                />
             </Col>
         </Row>
     )
