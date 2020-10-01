@@ -11,8 +11,10 @@ const Main = () => {
     const [satList, setSatList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [tracking, setTracking] = useState(false);
+    const [observerInfo, setObserverInfo] = useState({});
 
     const findSatellitesOnClick = (nextObserverInfo) => {
+        setObserverInfo(nextObserverInfo)
         const { longitude, latitude, altitude, radius } = nextObserverInfo;
 
         setLoading(true);
@@ -51,6 +53,7 @@ const Main = () => {
                     selectedSatellites={satList.filter(sat => sat.selected)}
                     setTracking={setTracking}
                     onTracking={tracking}
+                    observerInfo={observerInfo}
                 />
             </Col>
         </Row>

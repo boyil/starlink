@@ -5,9 +5,13 @@ import {
     ComposableMap,
     Graticule,
     Sphere,
+    Marker,
 } from "react-simple-maps";
 import {Button, InputNumber, Progress} from "antd";
 import { PoweroffOutlined } from '@ant-design/icons';
+import { N2YO_API_KEY, N2YO_BASE_URL } from "../constants";
+
+export const POSITION_API_BASE_URL = `${N2YO_BASE_URL}/positions`;
 
 const progressStatus = {
     Idle: 'Idle',
@@ -22,29 +26,55 @@ const WorldMap = ({
     selectedSatellites,
     setTracking,
     onTracking,
+    observerInfo,
 }) => {
     const [duration, setDuration] = useState(1);
     const [progressPercentage, setProgressPercentage] = useState(0);
     const [progressText, setProgressText] = useState(progressStatus.Idle);
     const [timerId, setTimerId] = useState(null);
-    // const [currMin, setCurrMin] = useState(0);
+    const [markerInfo, setMarkersInfo] = useState([]);
+    const [timeStamp, setTimeStamp] = useState("");
+
+    const updateMarker = (data, index) => {
+        setMarkersInfo(data.map((sat) => ({
+            lon: sat.positions[index].satlongitude,
+            lat: sat.positions[index].satlatitude,
+            name: sat.info.satname,
+        })));
+    }
 
     const trackOnClick = () => {
         setTracking(true);
         setProgressText(`Tracking for ${duration} minutes`);
         setProgressPercentage(0);
-        let currMin = 0;
-        const tmpTimerId = setInterval(() => {
-            setProgressPercentage(currMin / duration * 100);
-            if (currMin === duration) {
-                clearInterval(tmpTimerId);
-                setProgressText(progressStatus.Complete);
-                setTimerId(null);
-                setTracking(false);
-            }
-            currMin ++;
-        }, 1000);
-        setTimerId(tmpTimerId);
+
+        Promise.all(fetchPositions()).then((data) => {
+            let index = 59;
+            let end = data[0].positions.length - 1;
+
+            setProgressPercentage((index / end) * 100);
+            setTimeStamp(new Date(data[0].positions[index].timestamp * 1000).toString());
+            updateMarker(data, index);
+
+            const tmpTimerId = setInterval(() => {
+                index += 60;
+                if (index <= end){
+                    setProgressPercentage(index / end * 100);
+                    setTimeStamp(new Date(data[0].positions[index].timestamp * 1000).toString());
+                    updateMarker(data, index);
+                }
+
+                if (index >= end) {
+                    clearInterval(tmpTimerId);
+                    setProgressText(progressStatus.Complete);
+                    setTimerId(null);
+                    setTracking(false);
+                }
+            }, 1000);
+            setTimerId(tmpTimerId);
+        }).catch(() => {
+            alert("Failed to fetch satellites positions from N2YO! Please try again.");
+        });
     }
 
     const abortOnClick = () => {
@@ -55,6 +85,16 @@ const WorldMap = ({
             setTimerId(null);
             setTracking(false);
         }
+    }
+
+    const fetchPositions = () => {
+        const {longitude, latitude, altitude} = observerInfo;
+
+        return selectedSatellites.map((sat) => {
+            const id = sat.satid;
+            return fetch(`${POSITION_API_BASE_URL}/${id}/${latitude}/${longitude}/${altitude}/${duration * 60}&apiKey=${N2YO_API_KEY}`)
+                .then(response => response.json());
+        });
     }
 
     return (
@@ -71,12 +111,15 @@ const WorldMap = ({
                 <span style={{ marginLeft: "10px", marginRight: "10px" }}>for</span>
                 <InputNumber
                     min={1}
-                    max={50}
+                    max={60}
                     defaultValue={1}
                     onChange={(value) => setDuration(value)}
                 />
                 <span style={{ marginLeft: "10px", marginRight: "30px" }}>minutes</span>
                 <Progress style={{ width: "500px" }} percent={progressPercentage} format={() => progressText}/>
+            </div>
+            <div className="time-stamp-container" style={{textAlign: "center"}}>
+                <b>{timeStamp}</b>
             </div>
             <ComposableMap projectionConfig={{ scale: 137 }} style={{ height: "800px", marginLeft: "100px" }}>
                 <Graticule stroke="#DDD" strokeWidth={0.5} />
@@ -93,6 +136,14 @@ const WorldMap = ({
                         ))
                     }
                 </Geographies>
+                {
+                    markerInfo.map((marker) =>
+                        <Marker coordinates={[marker.lon, marker.lat]}>
+                            <circle r={4} fill="#F53" />
+                            <text>{marker.name}</text>
+                        </Marker>
+                    )
+                }
             </ComposableMap>
         </>
     )
